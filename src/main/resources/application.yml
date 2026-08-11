@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/fcpv_abnormal
+    username: root
+    password: 123456
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+openapi:
+  service:
+    api-docs: abnormal
+    title: Backend API Document
+    version: 1.0.0
+    server: http://localhost:8080
+server:
+  port: 8080
+
+jwt:
+  expiryMinutes: 5
+  expiryDay: 14
+  accessKey: LEaQ1sFrR+NEm+4Qpsk6uCOtQgRTOySB110RwA/AcVc=
+  refreshKey: wga1FbR4nRLg1sIql6TVAbnl/10Ym04bgWgJmMupzYo=
