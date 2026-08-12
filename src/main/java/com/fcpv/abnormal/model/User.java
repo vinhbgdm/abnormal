@@ -9,9 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Setter
 @Getter
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Entity
 @Table(name = "tbl_user")
-public class User extends AbstractEntity<Long> implements UserDetails, Serializable {
+public class User extends AbstractEntity<Long> implements UserDetails {
 
     @Column(name = "full_name")
     private String fullName;
@@ -56,7 +54,7 @@ public class User extends AbstractEntity<Long> implements UserDetails, Serializa
 
     @Override
     public String getUsername() {
-        return "";
+        return this.getUserCode();
     }
 
     @Override

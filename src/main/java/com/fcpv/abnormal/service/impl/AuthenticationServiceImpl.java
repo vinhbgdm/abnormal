@@ -39,6 +39,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         List<String> authorities = new ArrayList<>();
         try {
+            User user = userRepository.findByUserCode(request.getUserCode());
+            if (user == null) { throw new BadCredentialsException("Invalid User Code or password");}
+
             // Xác thực với userCode và password
             Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserCode(), request.getPassword()));
 
