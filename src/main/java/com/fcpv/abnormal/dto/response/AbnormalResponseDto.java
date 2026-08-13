@@ -22,4 +22,8 @@ public class AbnormalResponseDto implements Serializable {
     private String imageUrl;
 
     private Long userId;
+
+    private String createdBy;
+
+    private String lastModifiedBy;
 }

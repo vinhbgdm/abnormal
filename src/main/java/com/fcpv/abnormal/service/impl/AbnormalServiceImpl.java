@@ -120,8 +120,7 @@ public class AbnormalServiceImpl implements AbnormalService {
                 .toList();
     }
 
-    private AbnormalResponseDto mapToResponse(
-            Abnormal abnormal) {
+    private AbnormalResponseDto mapToResponse(Abnormal abnormal) {
 
         return AbnormalResponseDto.builder()
                 .id(abnormal.getId())
@@ -130,6 +129,8 @@ public class AbnormalServiceImpl implements AbnormalService {
                 .status(abnormal.getStatus().name())
                 .imageUrl(abnormal.getImageUrl())
                 .userId(abnormal.getUser() != null ? abnormal.getUser().getId() : null)
+                .createdBy(abnormal.getCreatedBy())
+                .lastModifiedBy(abnormal.getLastModifiedBy())
                 .build();
     }
 

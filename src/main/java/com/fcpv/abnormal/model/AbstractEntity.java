@@ -26,17 +26,17 @@ public abstract class AbstractEntity<T extends Serializable> implements Serializ
     @Column(name = "id")
     T id;
 
-//    @CreatedBy
-//    @Column(name = "created_by", nullable = false, updatable = false)
-//    private String createdBy;
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false)
+    private String createdBy;
 
     @CreatedDate
     @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
 
-//    @LastModifiedBy
-//    @Column(name = "last_modified_by")
-//    private String lastModifiedBy;
+    @LastModifiedBy
+    @Column(name = "last_modified_by")
+    private String lastModifiedBy;
 
     @LastModifiedDate
     @Column(name = "last_modified_date")
