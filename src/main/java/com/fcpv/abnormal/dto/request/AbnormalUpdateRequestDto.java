@@ -8,12 +8,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Setter
-public class AbnormalRequestDto implements Serializable {
+public class AbnormalUpdateRequestDto {
 
     @NotBlank(message = "title must be not blank")
     private String title;
@@ -22,10 +21,14 @@ public class AbnormalRequestDto implements Serializable {
     private String description;
 
     @NotNull(message = "status must be not null")
-    @EnumValue(name = "status", enumClass = AbnormalStatus.class)
+    @EnumValue(
+            name = "status",
+            enumClass = AbnormalStatus.class
+    )
     private String status;
 
-//    @NotNull(message = "image must be not blank")
-    private List<MultipartFile> images;
+    // ID của các ảnh cũ muốn giữ lại
+    private List<Long> existingImageIds;
 
+    private List<MultipartFile> newImages;
 }

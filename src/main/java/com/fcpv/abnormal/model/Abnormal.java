@@ -4,6 +4,9 @@ import com.fcpv.abnormal.enums.AbnormalStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @Builder
@@ -23,11 +26,11 @@ public class Abnormal extends AbstractEntity<Long> {
     @Column(name = "status")
     private AbnormalStatus status;
 
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "abnormal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AbnormalImage> images = new ArrayList<>();
 
 }

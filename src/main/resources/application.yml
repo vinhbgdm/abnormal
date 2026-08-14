@@ -20,7 +20,10 @@ server:
   port: 8080
 
 jwt:
-  expiryMinutes: 5
+  expiryMinutes: 10
   expiryDay: 14
   accessKey: LEaQ1sFrR+NEm+4Qpsk6uCOtQgRTOySB110RwA/AcVc=
   refreshKey: wga1FbR4nRLg1sIql6TVAbnl/10Ym04bgWgJmMupzYo=
+
+app:
+  upload-dir: uploads/abnormal/

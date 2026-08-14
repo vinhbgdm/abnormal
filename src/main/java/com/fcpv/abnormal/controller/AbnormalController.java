@@ -1,6 +1,7 @@
 package com.fcpv.abnormal.controller;
 
 import com.fcpv.abnormal.dto.request.AbnormalRequestDto;
+import com.fcpv.abnormal.dto.request.AbnormalUpdateRequestDto;
 import com.fcpv.abnormal.dto.response.AbnormalResponseDto;
 import com.fcpv.abnormal.dto.response.ResponseData;
 import com.fcpv.abnormal.dto.response.ResponseError;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RestController
 @RequestMapping("/abnormal")
@@ -41,8 +44,8 @@ public class AbnormalController {
     }
 
     @Operation(summary = "Update abnormal", description = "Send a request via this API to update abnormal")
-    @PutMapping("/{abnormalId}")
-    public ResponseData<Void> updateAbnormal(@PathVariable @Min(1) int abnormalId, @Valid @ModelAttribute AbnormalRequestDto abnormal) {
+    @PutMapping(value = "/{abnormalId}", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseData<Void> updateAbnormal(@PathVariable @Min(1) int abnormalId, @Valid @ModelAttribute AbnormalUpdateRequestDto abnormal) {
         log.info("Request update abnormalId={}", abnormalId);
         try {
             abnormalService.updateAbnormal(abnormalId, abnormal);

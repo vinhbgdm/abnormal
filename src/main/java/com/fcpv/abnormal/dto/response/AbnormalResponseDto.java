@@ -3,6 +3,7 @@ package com.fcpv.abnormal.dto.response;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class AbnormalResponseDto implements Serializable {
 
     private String status;
 
-    private String imageUrl;
+    private List<AbnormalImageResponseDto> imageUrls;
 
     private Long userId;
 

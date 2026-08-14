@@ -1,17 +1,22 @@
 package com.fcpv.abnormal.service.impl;
 
 import com.fcpv.abnormal.dto.request.AbnormalRequestDto;
+import com.fcpv.abnormal.dto.request.AbnormalUpdateRequestDto;
+import com.fcpv.abnormal.dto.response.AbnormalImageResponseDto;
 import com.fcpv.abnormal.dto.response.AbnormalResponseDto;
 import com.fcpv.abnormal.enums.AbnormalStatus;
 import com.fcpv.abnormal.exception.ResourceNotFoundException;
 import com.fcpv.abnormal.model.Abnormal;
+import com.fcpv.abnormal.model.AbnormalImage;
 import com.fcpv.abnormal.model.User;
 import com.fcpv.abnormal.repository.AbnormalRepository;
 import com.fcpv.abnormal.repository.UserRepository;
 import com.fcpv.abnormal.service.AbnormalService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +40,8 @@ public class AbnormalServiceImpl implements AbnormalService {
     private final AbnormalRepository abnormalRepository;
     private final UserRepository userRepository;
 
-    private static final String UPLOAD_DIR = "uploads/abnormal/";
+    @Value("${app.upload-dir}")
+    private String uploadDir;
 
     @Override
     public long saveAbnormal(AbnormalRequestDto request) {
@@ -45,8 +52,17 @@ public class AbnormalServiceImpl implements AbnormalService {
         abnormal.setStatus(AbnormalStatus.valueOf(request.getStatus()));
 
         // Lưu ảnh
-        String imageUrl = saveImage(request.getImage());
-        abnormal.setImageUrl(imageUrl);
+        if (request.getImages() != null) {
+            for (MultipartFile image : request.getImages()) {
+                if (image.isEmpty()) continue;
+                String imageUrl = saveImage(image);
+                AbnormalImage abnormalImage = new AbnormalImage();
+                abnormalImage.setImageUrl(imageUrl);
+                abnormalImage.setAbnormal(abnormal);
+
+                abnormal.getImages().add(abnormalImage);
+            }
+        }
 
         // Lấy user hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -60,7 +76,8 @@ public class AbnormalServiceImpl implements AbnormalService {
     }
 
     @Override
-    public void updateAbnormal(long abnormalId, AbnormalRequestDto request) {
+    @Transactional
+    public void updateAbnormal(long abnormalId, AbnormalUpdateRequestDto request) {
 
         Abnormal abnormal = abnormalRepository.findById(abnormalId).orElseThrow(() -> new ResourceNotFoundException("Abnormal not found"));
 
@@ -68,20 +85,26 @@ public class AbnormalServiceImpl implements AbnormalService {
         abnormal.setDescription(request.getDescription());
         abnormal.setStatus(AbnormalStatus.valueOf(request.getStatus()));
 
-        if (request.getImage() != null
-                && !request.getImage().isEmpty()) {
+        // Xử lý ảnh cũ
+        List<Long> existingImageIds = request.getExistingImageIds() != null ? request.getExistingImageIds() : new ArrayList<>();
+        List<AbnormalImage> imagesToDelete = abnormal.getImages().stream().filter(image -> !existingImageIds.contains(image.getId())).toList();
 
-            // Kiểm tra ảnh mới có giống ảnh cũ không
-            if (!isSameImage(abnormal.getImageUrl(), request.getImage())) {
+        // Xóa file vật lý + entity
+        for (AbnormalImage image : imagesToDelete) {
+            deleteImage(image.getImageUrl());
+            abnormal.getImages().remove(image);
+        }
 
-                String oldImageUrl = abnormal.getImageUrl();
+        // Thêm ảnh mới
+        if (request.getNewImages() != null) {
+            for (MultipartFile file : request.getNewImages()) {
+                if (file == null || file.isEmpty()) continue;
+                String imageUrl = saveImage(file);
+                AbnormalImage abnormalImage = new AbnormalImage();
+                abnormalImage.setImageUrl(imageUrl);
+                abnormalImage.setAbnormal(abnormal);
 
-                String newImageUrl = saveImage(request.getImage());
-
-                abnormal.setImageUrl(newImageUrl);
-
-                // Xóa ảnh cũ
-                deleteImage(oldImageUrl);
+                abnormal.getImages().add(abnormalImage);
             }
         }
 
@@ -93,6 +116,11 @@ public class AbnormalServiceImpl implements AbnormalService {
     public void deleteAbnormal(long abnormalId) {
 
         Abnormal abnormal = abnormalRepository.findById(abnormalId).orElseThrow(() -> new ResourceNotFoundException("Abnormal not found"));
+
+        // Xóa các file ảnh vật lý
+        for (AbnormalImage image : abnormal.getImages()) {
+            deleteImage(image.getImageUrl());
+        }
 
         abnormalRepository.delete(abnormal);
 
@@ -121,13 +149,16 @@ public class AbnormalServiceImpl implements AbnormalService {
     }
 
     private AbnormalResponseDto mapToResponse(Abnormal abnormal) {
-
         return AbnormalResponseDto.builder()
                 .id(abnormal.getId())
                 .title(abnormal.getTitle())
                 .description(abnormal.getDescription())
                 .status(abnormal.getStatus().name())
-                .imageUrl(abnormal.getImageUrl())
+                .imageUrls(abnormal.getImages().stream().map(
+                        image -> AbnormalImageResponseDto.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .build()).toList())
                 .userId(abnormal.getUser() != null ? abnormal.getUser().getId() : null)
                 .createdBy(abnormal.getCreatedBy())
                 .lastModifiedBy(abnormal.getLastModifiedBy())
@@ -136,7 +167,7 @@ public class AbnormalServiceImpl implements AbnormalService {
 
     private String saveImage(@NotNull MultipartFile image) {
         try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
