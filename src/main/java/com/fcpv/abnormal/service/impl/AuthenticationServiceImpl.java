@@ -39,9 +39,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         List<String> authorities = new ArrayList<>();
         try {
-            User user = userRepository.findByUserCode(request.getUserCode());
-            if (user == null) { throw new BadCredentialsException("Invalid User Code or password");}
-
             // Xác thực với userCode và password
             Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserCode(), request.getPassword()));
 
@@ -57,17 +54,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AccessDeniedException(e.getMessage());
         }
 
-//        var user = userRepository.findByUserCode(request.getUserCode());
-//        if(user == null) {
-//            throw new UsernameNotFoundException("User not found");
-//        }
+        var user = userRepository.findByUserCode(request.getUserCode());
+        if(user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
 
         String accessToken = jwtService.generateAccessToken(request.getUserCode(), authorities);
         String refreshToken = jwtService.generateRefreshToken(request.getUserCode(), authorities);
+        String role = String.valueOf(user.getRole());
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .role(role)
                 .build();
     }
 
