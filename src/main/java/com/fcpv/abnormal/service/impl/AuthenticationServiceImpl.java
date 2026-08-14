@@ -80,13 +80,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             // check user is active or inactive
             User user = userRepository.findByUserCode(userCode);
+            if(user == null) {
+                throw new UsernameNotFoundException("User not found");
+            }
+            
             List<String> authorities = new ArrayList<>();
             user.getAuthorities().forEach(authority -> authorities.add(authority.getAuthority()));
 
-            // generate new access token
-            String accessToken = jwtService.generateAccessToken(userCode, authorities);
+            // generate new access token AND new refresh token (token rotation)
+            String newAccessToken = jwtService.generateAccessToken(userCode, authorities);
+            String newRefreshToken = jwtService.generateRefreshToken(userCode, authorities);
 
-            return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+            return TokenResponse.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .role(String.valueOf(user.getRole()))
+                    .build();
         } catch (Exception e) {
             log.error("Access denied! errorMessage: {}", e.getMessage());
             throw new ForbiddenException(e.getMessage());

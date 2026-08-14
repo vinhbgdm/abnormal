@@ -72,7 +72,10 @@ public class JwtServiceImpl implements JwtService {
 
     private Claims extraAllClaim(String token, TokenType type) {
         try {
-            return Jwts.parser().setSigningKey(accessKey).parseClaimsJws(token).getBody();
+            return Jwts.parser()
+                    .setSigningKey(getKey(type))
+                    .parseClaimsJws(token)
+                    .getBody();
         } catch (SignatureException | ExpiredJwtException e) {
             throw new AccessDeniedException("Access denied!, error: " + e.getMessage());
         }

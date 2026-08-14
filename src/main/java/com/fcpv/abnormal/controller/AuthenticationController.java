@@ -1,5 +1,6 @@
 package com.fcpv.abnormal.controller;
 
+import com.fcpv.abnormal.dto.request.RefreshTokenRequest;
 import com.fcpv.abnormal.dto.request.SignInToken;
 import com.fcpv.abnormal.dto.response.TokenResponse;
 import com.fcpv.abnormal.service.AuthenticationService;
@@ -28,10 +29,10 @@ public class AuthenticationController {
         return authenticationService.getAccessToken(request);
     }
 
-    @Operation(summary = "Refresh token", description = "Get new access token by refresh token")
+    @Operation(summary = "Refresh token", description = "Get new access token and refresh token by refresh token")
     @PostMapping("/refresh-token")
-    public TokenResponse getRefreshToken(@RequestBody String request) {
+    public TokenResponse getRefreshToken(@RequestBody RefreshTokenRequest request) {
         log.info("Refresh token request");
-        return authenticationService.getRefreshToken(request);
+        return authenticationService.getRefreshToken(request.getRefreshToken());
     }
 }
