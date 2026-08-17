@@ -4,6 +4,7 @@ import com.fcpv.abnormal.dto.request.AbnormalRequestDto;
 import com.fcpv.abnormal.dto.request.AbnormalUpdateRequestDto;
 import com.fcpv.abnormal.dto.response.AbnormalImageResponseDto;
 import com.fcpv.abnormal.dto.response.AbnormalResponseDto;
+import com.fcpv.abnormal.enums.AbnormalPriority;
 import com.fcpv.abnormal.enums.AbnormalStatus;
 import com.fcpv.abnormal.exception.ResourceNotFoundException;
 import com.fcpv.abnormal.model.Abnormal;
@@ -47,9 +48,15 @@ public class AbnormalServiceImpl implements AbnormalService {
     public long saveAbnormal(AbnormalRequestDto request) {
 
         Abnormal abnormal = new Abnormal();
+        abnormal.setAbnormalNo(request.getAbnormalNo());
         abnormal.setTitle(request.getTitle());
         abnormal.setDescription(request.getDescription());
+        abnormal.setCategory(request.getCategory());
         abnormal.setStatus(AbnormalStatus.valueOf(request.getStatus()));
+        abnormal.setPriority(AbnormalPriority.valueOf(request.getPriority()));
+        abnormal.setLocation(request.getLocation());
+        abnormal.setDueDate(request.getDueDate());
+        abnormal.setCloseTime(request.getCloseTime());
 
         // Lưu ảnh
         if (request.getImages() != null) {
@@ -81,9 +88,15 @@ public class AbnormalServiceImpl implements AbnormalService {
 
         Abnormal abnormal = abnormalRepository.findById(abnormalId).orElseThrow(() -> new ResourceNotFoundException("Abnormal not found"));
 
+        abnormal.setAbnormalNo(request.getAbnormalNo());
         abnormal.setTitle(request.getTitle());
         abnormal.setDescription(request.getDescription());
+        abnormal.setCategory(request.getCategory());
         abnormal.setStatus(AbnormalStatus.valueOf(request.getStatus()));
+        abnormal.setPriority(AbnormalPriority.valueOf(request.getPriority()));
+        abnormal.setLocation(request.getLocation());
+        abnormal.setDueDate(request.getDueDate());
+        abnormal.setCloseTime(request.getCloseTime());
 
         // Xử lý ảnh cũ
         List<Long> existingImageIds = request.getExistingImageIds() != null ? request.getExistingImageIds() : new ArrayList<>();
@@ -151,9 +164,15 @@ public class AbnormalServiceImpl implements AbnormalService {
     private AbnormalResponseDto mapToResponse(Abnormal abnormal) {
         return AbnormalResponseDto.builder()
                 .id(abnormal.getId())
+                .abnormalNo(abnormal.getAbnormalNo())
                 .title(abnormal.getTitle())
                 .description(abnormal.getDescription())
+                .category(abnormal.getCategory())
                 .status(abnormal.getStatus().name())
+                .priority(abnormal.getPriority().name())
+                .location(abnormal.getLocation())
+                .dueDate(abnormal.getDueDate())
+                .closeTime(abnormal.getCloseTime())
                 .imageUrls(abnormal.getImages().stream().map(
                         image -> AbnormalImageResponseDto.builder()
                         .id(image.getId())
@@ -193,24 +212,6 @@ public class AbnormalServiceImpl implements AbnormalService {
         } catch (IOException e) {
             log.error("Failed to save abnormal image: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to save image");
-        }
-    }
-
-    private boolean isSameImage(String oldImageUrl, MultipartFile newImage) {
-
-        if (oldImageUrl == null) { return false; }
-
-        try {
-            Path oldImagePath = Paths.get("." + oldImageUrl);
-            if (!Files.exists(oldImagePath)) { return false; }
-
-            byte[] oldImageBytes = Files.readAllBytes(oldImagePath);
-            byte[] newImageBytes = newImage.getBytes();
-
-            return Arrays.equals(oldImageBytes, newImageBytes);
-        } catch (IOException e) {
-            log.error("Cannot compare images: {}", e.getMessage());
-            return false;
         }
     }
 

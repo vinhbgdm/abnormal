@@ -31,7 +31,7 @@ public class AbnormalController {
     private static final String ERROR_MESSAGE = "errorMessage = {}";
 
     @Operation(summary = "Add new abnormal", description = "Send a request via this API to create new abnormal")
-    @PostMapping("/")
+    @PostMapping(value = "/", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseData<Long> addAbnormal(@Valid @ModelAttribute AbnormalRequestDto abnormal) {
         log.info("Request add abnormal {} {}", abnormal.getTitle(), abnormal.getStatus());
         try {
